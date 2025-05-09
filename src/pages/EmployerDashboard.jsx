@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { FaBars } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
-import Applications from "../components/employer/applications";
-import Listings from "../components/employer/listings";
-import Analysis from "../components/employer/analysis";
+import Applications from "../components/employer/Applications";
+import Listings from "../components/employer/Listings";
+import Analysis from "../components/employer/Analysis";
 
 function EmployerDashboard() {
   const [drawerOpen, setDrawerOpen] = useState(false);
