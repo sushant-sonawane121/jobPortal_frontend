@@ -31,8 +31,8 @@ function Register() {
 
     const endpoint =
       formData.accountType === "employer"
-        ? "http://localhost:3000/api/employer/register"
-        : "http://localhost:3000/api/jobseeker/register";
+        ? "https://jop-portal-backend-seven.vercel.app/api/employer/register"
+        : "https://jop-portal-backend-seven.vercel.app/api/jobseeker/register";
 
     try {
       console.log("Form Data:", formData);

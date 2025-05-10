@@ -18,7 +18,7 @@ function JobDetails() {
   useEffect(() => {
     const fetchJobDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/jobs/${id}`);
+        const response = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs/${id}`);
         const data = await response.json();
         setEmpid(data.employer._id);
         setJob(data.employer);
@@ -49,7 +49,7 @@ function JobDetails() {
       setIsApplying(true);
 
       const response = await fetch(
-        "http://localhost:3000/api/jobseeker/apply",
+        "https://jop-portal-backend-seven.vercel.app/api/jobseeker/apply",
         {
           method: "POST",
           headers: {

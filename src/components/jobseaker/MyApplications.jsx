@@ -7,7 +7,7 @@ function MyApplications() {
   // Function to fetch job details based on jobId
   const fetchJobDetails = async (jobId) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/jobs?_id=${jobId}`);
+      const res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs?_id=${jobId}`);
       if (!res.ok) throw new Error("Failed to fetch job details");
       const job = await res.json();
       return job[0]; // Assuming the job details are returned as an array
@@ -21,7 +21,7 @@ function MyApplications() {
   const fetchCompanyName = async (employerId) => {
     
     try {
-      const res = await fetch("http://localhost:3000/api/employer/getEmployer", {
+      const res = await fetch("https://jop-portal-backend-seven.vercel.app/api/employer/getEmployer", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -45,7 +45,7 @@ function MyApplications() {
         const token = localStorage.getItem("authToken");
         const userId = localStorage.getItem("userId");
 
-        const res = await fetch("http://localhost:3000/api/jobseeker/appliedjobs", {
+        const res = await fetch("https://jop-portal-backend-seven.vercel.app/api/jobseeker/appliedjobs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

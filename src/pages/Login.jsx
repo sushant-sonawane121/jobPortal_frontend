@@ -41,8 +41,8 @@ function Login() {
     // Determine the API endpoint based on account type
     const endpoint =
       formData.accountType === "employer"
-        ? "http://localhost:3000/api/employer/login"
-        : "http://localhost:3000/api/jobseeker/login";
+        ? "https://jop-portal-backend-seven.vercel.app/api/employer/login"
+        : "https://jop-portal-backend-seven.vercel.app/api/jobseeker/login";
 
     try {
       const res = await fetch(endpoint, {

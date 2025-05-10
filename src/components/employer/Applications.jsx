@@ -7,7 +7,7 @@ function Applications() {
 
   const fetchJobTitle = async (jobId) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/jobs?_id=${jobId}`);
+      const res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs?_id=${jobId}`);
       if (!res.ok) {
         throw new Error("Failed to fetch job title.");
       }
@@ -39,7 +39,7 @@ function Applications() {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/api/employer/getjobseakerappliedjob", {
+      const res = await fetch("https://jop-portal-backend-seven.vercel.app/api/employer/getjobseakerappliedjob", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

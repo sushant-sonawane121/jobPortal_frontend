@@ -23,7 +23,7 @@ function Jobs() {
           queryParams.append("category", category);
         }
 
-        const res = await fetch(`http://localhost:3000/api/jobs?${queryParams.toString()}`);
+        const res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs?${queryParams.toString()}`);
         const data = await res.json();
         setJobListings(data);
         setLoading(false);

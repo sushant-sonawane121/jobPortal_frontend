@@ -22,7 +22,7 @@ function Listings() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/jobs`);
+        const res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs`);
         const data = await res.json();
         setJobListings(data);
         setLoading(false);
@@ -77,7 +77,7 @@ function Listings() {
     console.log("Job data being sent:", newJob);
   
     try {
-      const res = await fetch(`http://localhost:3000/api/jobs/create`, {
+      const res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +118,7 @@ function Listings() {
   // delete job post
   const handleDelete = async (jobId) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/jobs/${jobId}`, {
+      const res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs/${jobId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("authToken")}`,
