@@ -32,10 +32,10 @@ function Listings() {
       setLoading(false);
     }
   };
-  const [update, setUpdate] = useState(0);
+let update = 0;
   useEffect(() => {
     fetchJobs();
-  }, [update]);
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -56,7 +56,6 @@ function Listings() {
     });
     setIsUpdating(false);
     setUpdateJobId(null);
-    update = 0+1;
   };
 
   const handleAddListing = async (e) => {
