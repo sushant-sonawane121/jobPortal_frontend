@@ -1,8 +1,53 @@
-import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+// --- Backend: Controller for Updating Job ---
+// File: controllers/jobController.js
 
-const Listings = () => {
-  const [jobListings, setJobListings] = useState([]);
+const Job = require("../models/jobModel");
+
+// Update Job by ID
+const updateJobById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedData = req.body;
+
+    const updatedJob = await Job.findByIdAndUpdate(id, updatedData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedJob) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    res.status(200).json({ message: "Job updated successfully", job: updatedJob });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating job", error: error.message });
+  }
+};
+
+module.exports = { updateJobById };
+
+
+// --- Backend: Route ---
+// File: routes/job.routes.js
+
+const express = require("express");
+const router = express.Router();
+const { updateJobById } = require("../controllers/jobController");
+
+// ... other routes
+
+router.put("/:id", updateJobById);
+
+module.exports = router;
+
+
+// --- Frontend: Listings.js ---
+
+import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+function Listings() {
   const [formData, setFormData] = useState({
     jobTitle: "",
     jobType: "",
@@ -15,34 +60,57 @@ const Listings = () => {
     companyAddress: "",
     companyAbout: "",
   });
+  const [jobListings, setJobListings] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [editingJobId, setEditingJobId] = useState(null);
 
-  const fetchJobs = async () => {
-    try {
-      const employerId = localStorage.getItem("userId");
-      const res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs/employer/${employerId}`);
-      const data = await res.json();
-      setJobListings(data.jobs);
-    } catch (error) {
-      toast.error("Failed to fetch jobs.");
-    }
-  };
-
   useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs`);
+        const data = await res.json();
+        setJobListings(data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching job listings:", error);
+        setLoading(false);
+      }
+    };
     fetchJobs();
   }, []);
 
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleEdit = async (jobId) => {
+    try {
+      const res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs/${jobId}`);
+      const data = await res.json();
+      const job = data;
+
+      setFormData({
+        jobTitle: job.jobTitle,
+        jobType: job.jobType,
+        category: job.category,
+        salaryMin: job.salaryRange.min,
+        salaryMax: job.salaryRange.max,
+        jobDescription: job.jobDescription,
+        requirements: job.requirements.join(","),
+        companyName: job.company.name,
+        companyAddress: job.company.address,
+        companyAbout: job.company.about,
+      });
+      setEditingJobId(jobId);
+    } catch (error) {
+      console.error("Error fetching job to edit:", error);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const employerId = localStorage.getItem("userId");
+    const authToken = localStorage.getItem("authToken");
 
     const jobPayload = {
       jobTitle: formData.jobTitle,
@@ -63,44 +131,30 @@ const Listings = () => {
     };
 
     try {
-      let res;
-      if (editingJobId) {
-        res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs/${editingJobId}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-          body: JSON.stringify(jobPayload),
-        });
-      } else {
-        res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs/create`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-          body: JSON.stringify(jobPayload),
-        });
-      }
+      const url = editingJobId
+        ? `https://jop-portal-backend-seven.vercel.app/api/jobs/${editingJobId}`
+        : `https://jop-portal-backend-seven.vercel.app/api/jobs/create`;
+
+      const method = editingJobId ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(jobPayload),
+      });
 
       if (!res.ok) {
-        toast.error(editingJobId ? "Failed to update job." : "Failed to add job.");
+        const err = await res.json();
+        toast.error(err.message || "Operation failed");
         return;
       }
 
       const data = await res.json();
-
-      if (editingJobId) {
-        setJobListings((prev) =>
-          prev.map((job) => (job._id === editingJobId ? data : job))
-        );
-        toast.success("Job updated successfully!");
-      } else {
-        setJobListings([data.job, ...jobListings]);
-        toast.success("Job added successfully!");
-      }
-
+      toast.success(editingJobId ? "Job updated successfully!" : "Job added successfully!");
+      setEditingJobId(null);
       setFormData({
         jobTitle: "",
         jobType: "",
@@ -113,9 +167,9 @@ const Listings = () => {
         companyAddress: "",
         companyAbout: "",
       });
-      setEditingJobId(null);
+      setJobListings(await (await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs`)).json());
     } catch (error) {
-      toast.error("Error occurred while submitting job.");
+      console.error("Error:", error);
     }
   };
 
@@ -128,86 +182,55 @@ const Listings = () => {
         },
       });
 
-      if (!res.ok) {
-        toast.error("Failed to delete job.");
-        return;
-      }
+      if (!res.ok) throw new Error("Failed to delete");
 
       setJobListings(jobListings.filter((job) => job._id !== jobId));
-      toast.success("Job deleted successfully!");
-    } catch (error) {
-      toast.error("Error deleting job.");
+      toast.success("Deleted successfully");
+    } catch (err) {
+      toast.error("Failed to delete job");
     }
   };
 
-  const handleUpdate = async (jobId) => {
-    try {
-      const res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs/${jobId}`);
-      const data = await res.json();
-
-      setFormData({
-        jobTitle: data.jobTitle,
-        jobType: data.jobType,
-        category: data.category,
-        salaryMin: data.salaryRange.min,
-        salaryMax: data.salaryRange.max,
-        jobDescription: data.jobDescription,
-        requirements: data.requirements.join(", "),
-        companyName: data.company.name,
-        companyAddress: data.company.address,
-        companyAbout: data.company.about,
-      });
-
-      setEditingJobId(jobId);
-    } catch (error) {
-      toast.error("Failed to fetch job details for editing.");
-    }
-  };
+  if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="max-w-6xl mx-auto p-4 space-y-6">
-      <h2 className="text-2xl font-bold text-center">
-        {editingJobId ? "Update Job Listing" : "Create a Job Listing"}
-      </h2>
-      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-md p-6 space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <input type="text" name="jobTitle" placeholder="Job Title" value={formData.jobTitle} onChange={handleChange} required className="input" />
-          <input type="text" name="jobType" placeholder="Job Type" value={formData.jobType} onChange={handleChange} required className="input" />
-          <input type="text" name="category" placeholder="Category" value={formData.category} onChange={handleChange} required className="input" />
-          <input type="number" name="salaryMin" placeholder="Min Salary" value={formData.salaryMin} onChange={handleChange} required className="input" />
-          <input type="number" name="salaryMax" placeholder="Max Salary" value={formData.salaryMax} onChange={handleChange} required className="input" />
-          <input type="text" name="requirements" placeholder="Requirements (comma separated)" value={formData.requirements} onChange={handleChange} className="input" />
-          <input type="text" name="companyName" placeholder="Company Name" value={formData.companyName} onChange={handleChange} className="input" />
-          <input type="text" name="companyAddress" placeholder="Company Address" value={formData.companyAddress} onChange={handleChange} className="input" />
+    <div className="p-6 max-w-6xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4">{editingJobId ? "Update Job" : "Add New Job"}</h2>
+      <form onSubmit={handleSubmit} className="grid gap-4 mb-10">
+        <input id="jobTitle" value={formData.jobTitle} onChange={handleChange} placeholder="Job Title" required />
+        <input id="jobType" value={formData.jobType} onChange={handleChange} placeholder="Job Type" required />
+        <input id="category" value={formData.category} onChange={handleChange} placeholder="Category" required />
+        <div className="flex gap-4">
+          <input id="salaryMin" value={formData.salaryMin} onChange={handleChange} placeholder="Min Salary" type="number" required />
+          <input id="salaryMax" value={formData.salaryMax} onChange={handleChange} placeholder="Max Salary" type="number" required />
         </div>
-        <textarea name="jobDescription" placeholder="Job Description" value={formData.jobDescription} onChange={handleChange} rows="4" className="w-full border rounded-md p-2" />
-        <textarea name="companyAbout" placeholder="About Company" value={formData.companyAbout} onChange={handleChange} rows="3" className="w-full border rounded-md p-2" />
-        <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-semibold">
+        <textarea id="jobDescription" value={formData.jobDescription} onChange={handleChange} placeholder="Job Description" required></textarea>
+        <input id="requirements" value={formData.requirements} onChange={handleChange} placeholder="Requirements (comma-separated)" required />
+        <input id="companyName" value={formData.companyName} onChange={handleChange} placeholder="Company Name" required />
+        <input id="companyAddress" value={formData.companyAddress} onChange={handleChange} placeholder="Company Address" required />
+        <textarea id="companyAbout" value={formData.companyAbout} onChange={handleChange} placeholder="About the Company" required></textarea>
+        <button type="submit" className="bg-blue-600 text-white py-2 rounded">
           {editingJobId ? "Update Job" : "Add Job"}
         </button>
       </form>
 
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold">Your Job Listings</h2>
-        {jobListings.length === 0 && <p>No job listings found.</p>}
+      <h3 className="text-xl font-semibold mb-4">All Job Listings</h3>
+      <div className="grid md:grid-cols-2 gap-4">
         {jobListings.map((job) => (
-          <div key={job._id} className="bg-white border rounded-md p-4 shadow-md space-y-2">
-            <h3 className="text-lg font-semibold">{job.jobTitle}</h3>
-            <p className="text-gray-600">{job.category} | {job.jobType}</p>
-            <p className="text-gray-600">Salary: ${job.salaryRange.min} - ${job.salaryRange.max}</p>
-            <div className="flex gap-4 mt-2">
-              <button onClick={() => handleUpdate(job._id)} className="px-4 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600">
-                Update
-              </button>
-              <button onClick={() => handleDelete(job._id)} className="px-4 py-1 bg-red-600 text-white rounded-md hover:bg-red-700">
-                Delete
-              </button>
+          <div key={job._id} className="border rounded p-4">
+            <h4 className="text-lg font-bold">{job.jobTitle}</h4>
+            <p>{job.jobDescription}</p>
+            <p>Salary: {job.salaryRange.min} - {job.salaryRange.max}</p>
+            <p>Location: {job.company.address}</p>
+            <div className="mt-2 flex gap-2">
+              <button onClick={() => handleEdit(job._id)} className="bg-yellow-500 text-white px-3 py-1 rounded">Edit</button>
+              <button onClick={() => handleDelete(job._id)} className="bg-red-600 text-white px-3 py-1 rounded">Delete</button>
             </div>
           </div>
         ))}
       </div>
     </div>
   );
-};
+}
 
 export default Listings;
