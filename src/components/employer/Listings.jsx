@@ -25,6 +25,7 @@ function Listings() {
     try {
       const res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs`);
       const data = await res.json();
+      console.log(data);
       setJobListings(data);
       setLoading(false);
     } catch (error) {
@@ -137,8 +138,8 @@ function Listings() {
       if (!res.ok) throw new Error("Failed to fetch job for update");
 
       const job = await res.json();
-      console.log(job);
-      alert(job);
+     
+    
       setFormData({
         jobTitle: job.jobTitle,
         jobType: job.jobType,
