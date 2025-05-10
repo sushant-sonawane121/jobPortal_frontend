@@ -138,6 +138,7 @@ function Listings() {
 
       const job = await res.json();
       console.log(job);
+      alert(job);
       setFormData({
         jobTitle: job.jobTitle,
         jobType: job.jobType,
