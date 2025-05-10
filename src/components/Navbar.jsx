@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom"; // Import useNavigate for redirecting
+import { Link } from "react-router-dom";
 import { FaMoon, FaSun } from "react-icons/fa";
 
 function Navbar() {
+  localStorage.setItem("dark", true);
   const [isDark, setIsDark] = useState(localStorage.getItem("dark") === "true");
-  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("userId") !== null); // Check if user is logged in
-  const navigate = useNavigate(); // Hook for navigation
+  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("userId") !== null);
+  const [dashboardLink, setDashboardLink] = useState(null);
 
   useEffect(() => {
     if (isDark) {
@@ -16,14 +17,25 @@ function Navbar() {
     localStorage.setItem("dark", isDark);
   }, [isDark]);
 
+  useEffect(() => {
+    const accountType = localStorage.getItem("accountType");
+    if (accountType === "jobSeeker") {
+      setDashboardLink("/jobseeker/dashboard");
+    } else if (accountType === "employer") {
+      setDashboardLink("/employer/dashboard");
+    } else {
+      setDashboardLink(null);
+    }
+  }, [isLoggedIn]);
+
   const toggleTheme = () => {
     setIsDark((prev) => !prev);
   };
 
   const handleLogout = () => {
-    localStorage.clear(); // Clear all localStorage data
-    setIsLoggedIn(false); // Update state to reflect that the user is logged out
-    navigate("/"); // Redirect to home page
+    localStorage.clear();
+    setIsLoggedIn(false);
+    window.location.href = "/"; // Full page reload on logout
   };
 
   return (
@@ -39,7 +51,18 @@ function Navbar() {
                 Jobs
               </Link>
             </li>
-            {/* Conditionally render Login or Logout button */}
+
+            {dashboardLink && (
+              <li>
+                <Link
+                  to={dashboardLink}
+                  className="hover:underline text-black dark:text-white"
+                >
+                  Dashboard
+                </Link>
+              </li>
+            )}
+
             {isLoggedIn ? (
               <li>
                 <button

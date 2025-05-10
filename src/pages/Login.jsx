@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,6 +10,19 @@ function Login() {
     password: "",
     accountType: "jobSeeker", // Default account type is JobSeeker
   });
+
+  // Check if the user is already logged in and redirect accordingly
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      const accountType = localStorage.getItem("accountType");
+      if (accountType === "employer") {
+        navigate("/employer/dashboard"); // Redirect to employer dashboard
+      } else {
+        navigate("/jobseeker/dashboard"); // Redirect to jobseeker dashboard
+      }
+    }
+  }, [navigate]);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -41,7 +54,6 @@ function Login() {
         }),
       });
 
-      // Check if response is ok (status code 200-299)
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || "Login failed");
@@ -50,22 +62,21 @@ function Login() {
       const data = await res.json();
       console.log(data);
       toast.success("Login successful! Redirecting...");
-      
-      // Store each piece of user data separately in localStorage
+
+      // Store user info in localStorage
       localStorage.setItem("authToken", data.token);
       localStorage.setItem("userName", data.user.fullName);
       localStorage.setItem("userId", data.user.id);
-     
       localStorage.setItem("accountType", formData.accountType);
 
-      // Redirect to the appropriate dashboard based on account type
+      // Force full page reload and redirect based on account type
       setTimeout(() => {
         if (formData.accountType === "employer") {
-          navigate("/employer/dashboard");
+          window.location.href = "/employer/dashboard";
         } else {
-          navigate("/jobseeker/dashboard");
+          window.location.href = "/jobseeker/dashboard";
         }
-      }, 2000); // You can change the redirect delay as needed
+      }, 2000);
     } catch (err) {
       toast.error(err.message || "Login failed. Try again.");
     }

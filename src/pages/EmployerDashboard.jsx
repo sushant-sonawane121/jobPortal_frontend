@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaBars } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 import Applications from "../components/employer/Applications";
 import Listings from "../components/employer/Listings";
 import Analysis from "../components/employer/Analysis";
 
 function EmployerDashboard() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [currentSection, setCurrentSection] = useState("overview");
+  const [currentSection, setCurrentSection] = useState("Manage");
+  const navigate = useNavigate();
 
   const sections = {
     Applications: <Applications />,
@@ -15,14 +17,22 @@ function EmployerDashboard() {
     Analysis: <Analysis />,
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    const accountType = localStorage.getItem("accountType");
+
+    // Check if the user is logged in and if the account type is 'employer'
+    if (!token || accountType !== "employer") {
+      navigate("/login"); // Redirect to login if not logged in or account type is not employer
+    }
+  }, [navigate]);
+
   return (
     <section className="flex min-h-screen bg-white dark:bg-black text-black dark:text-white relative">
       {/* Sidebar */}
       <aside
         className={`fixed top-16 sm:top-4 left-0 z-30 h-full w-64 bg-gray-100 dark:bg-gray-800 shadow-md transform transition-transform duration-300 ease-in-out rounded-none sm:rounded-lg
-        ${
-          drawerOpen ? "translate-x-0" : "-translate-x-full"
-        } sm:translate-x-0 sm:relative`}
+        ${drawerOpen ? "translate-x-0" : "-translate-x-full"} sm:translate-x-0 sm:relative`}
       >
         {/* Close button for mobile */}
         <div className="p-4 flex justify-between items-center sm:hidden border-b border-gray-300 dark:border-gray-700">
