@@ -25,7 +25,6 @@ function Listings() {
     try {
       const res = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs`);
       const data = await res.json();
-      console.log(data);
       setJobListings(data);
       setLoading(false);
     } catch (error) {
@@ -138,8 +137,7 @@ function Listings() {
       if (!res.ok) throw new Error("Failed to fetch job for update");
 
       const job = await res.json();
-     
-    
+
       setFormData({
         jobTitle: job.jobTitle,
         jobType: job.jobType,
@@ -166,8 +164,8 @@ function Listings() {
     const employerId = localStorage.getItem("userId");
 
     const updatedJob = {
-      _id: employerId,         // Not employerId: employerId
-      id: updateJobId,         // This is the job ID to update
+      _id: employerId,
+      id: updateJobId,
       jobTitle: formData.jobTitle,
       jobType: formData.jobType,
       category: formData.category,
@@ -209,6 +207,10 @@ function Listings() {
     return <div>Loading job listings...</div>;
   }
 
+  // ✅ Filter jobs by employer
+  const currentUserId = localStorage.getItem("userId");
+  const filteredJobs = jobListings.filter((job) => job.employer?._id === currentUserId);
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
@@ -237,12 +239,12 @@ function Listings() {
         )}
       </form>
 
-      <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">All Job Listings</h3>
-      {jobListings.length === 0 ? (
+      <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Your Job Listings</h3>
+      {filteredJobs.length === 0 ? (
         <p className="text-gray-500 dark:text-gray-400">No jobs listed yet.</p>
       ) : (
         <div className="grid md:grid-cols-2 gap-6">
-          {jobListings.map((job) => (
+          {filteredJobs.map((job) => (
             <div key={job._id} className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow border dark:border-gray-700">
               <h4 className="text-lg font-bold text-gray-800 dark:text-white">{job.jobTitle}</h4>
               <p className="text-gray-600 dark:text-gray-300 mt-2">{job.jobDescription}</p>
