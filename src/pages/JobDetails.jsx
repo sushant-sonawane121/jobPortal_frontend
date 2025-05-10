@@ -14,11 +14,23 @@ function JobDetails() {
   const userId = localStorage.getItem("userId");
   const accountType = localStorage.getItem("accountType")?.toLowerCase(); // Normalize case
   const authToken = localStorage.getItem("authToken"); // Get token from localStorage
-   
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    const accountType = localStorage.getItem("accountType");
+
+    // Check if the user is logged in and if the account type is 'employer'
+    if (!token || !accountType) {
+      navigate("/login"); // Redirect to login if not logged in or account type is not employer
+    }
+  }, [navigate]);
+
   useEffect(() => {
     const fetchJobDetails = async () => {
       try {
-        const response = await fetch(`https://jop-portal-backend-seven.vercel.app/api/jobs/${id}`);
+        const response = await fetch(
+          `https://jop-portal-backend-seven.vercel.app/api/jobs/${id}`
+        );
         const data = await response.json();
         setEmpid(data.employer._id);
         setJob(data.employer);
@@ -59,7 +71,7 @@ function JobDetails() {
           body: JSON.stringify({
             jobId: id,
             userId: userId,
-            employerId:empid
+            employerId: empid,
           }),
         }
       );
