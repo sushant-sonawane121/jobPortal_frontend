@@ -32,6 +32,7 @@ function JobDetails() {
           `https://jop-portal-backend-seven.vercel.app/api/jobs/${id}`
         );
         const data = await response.json();
+        console.log(data);
         setEmpid(data.employer._id);
         setJob(data.employer);
         setLoading(false);
