@@ -32,7 +32,7 @@ function Listings() {
       setLoading(false);
     }
   };
-let update = 0;
+
   useEffect(() => {
     fetchJobs();
   }, []);
@@ -95,12 +95,16 @@ let update = 0;
         body: JSON.stringify(newJob),
       });
 
-      if (!res.ok) throw new Error("Failed to add job listing");
-
       const data = await res.json();
-      setJobListings([data.job, ...jobListings]);
-      resetForm();
+
+      if (!res.ok || !data.job) {
+        toast.error("Failed to add job listing.");
+        return;
+      }
+
       toast.success("Job listing added successfully!");
+      resetForm();
+      fetchJobs(); // ✅ Refetch updated job list
     } catch (error) {
       console.error("Error adding job listing:", error);
       toast.error("Error adding job listing.");
@@ -195,7 +199,7 @@ let update = 0;
       if (!res.ok) throw new Error("Update failed");
 
       toast.success("Job updated successfully!");
-      fetchJobs();
+      fetchJobs(); // ✅ Refresh listings
       resetForm();
     } catch (error) {
       console.error("Error updating job:", error);
@@ -207,7 +211,6 @@ let update = 0;
     return <div>Loading job listings...</div>;
   }
 
-  // ✅ Filter jobs by employer
   const currentUserId = localStorage.getItem("userId");
   const filteredJobs = jobListings.filter((job) => job.employer?._id === currentUserId);
 
