@@ -11,19 +11,16 @@ function JobDetails() {
   const [loading, setLoading] = useState(true);
   const [isApplying, setIsApplying] = useState(false);
   const [empid, setEmpid] = useState("");
+
   const userId = localStorage.getItem("userId");
-  const accountType = localStorage.getItem("accountType")?.toLowerCase(); // Normalize case
-  const authToken = localStorage.getItem("authToken"); // Get token from localStorage
+  const accountType = localStorage.getItem("accountType")?.toLowerCase();
+  const authToken = localStorage.getItem("authToken");
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const accountType = localStorage.getItem("accountType");
-
-    // Check if the user is logged in and if the account type is 'employer'
-    if (!token || !accountType) {
-      navigate("/login"); // Redirect to login if not logged in or account type is not employer
+    if (!authToken || !accountType) {
+      navigate("/login");
     }
-  }, [navigate]);
+  }, [navigate, authToken, accountType]);
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -33,8 +30,8 @@ function JobDetails() {
         );
         const data = await response.json();
         console.log(data);
-        setEmpid(data.employer._id);
-        setJob(data.employer);
+        setEmpid(data?.employer?._id || "");
+        setJob(data); // ✅ set entire job object
         setLoading(false);
       } catch (error) {
         console.error("Error fetching job details:", error);
@@ -67,7 +64,7 @@ function JobDetails() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`, // Add token to the headers
+            Authorization: `Bearer ${authToken}`,
           },
           body: JSON.stringify({
             jobId: id,
@@ -112,7 +109,6 @@ function JobDetails() {
   const companyDescription = company?.about || "No description available.";
   const jobLocation = company?.address || "Not specified";
   const jobCategory = category || "Not specified";
-
   const showApplyButton = userId && accountType === "jobseeker";
 
   return (
