@@ -32,7 +32,7 @@ function Listings() {
       setLoading(false);
     }
   };
-let update = 0;
+  const [update, setUpdate] = useState(0);
   useEffect(() => {
     fetchJobs();
   }, [update]);
