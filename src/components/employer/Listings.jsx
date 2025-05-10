@@ -163,7 +163,8 @@ function Listings() {
     const employerId = localStorage.getItem("userId");
 
     const updatedJob = {
-      _id: updateJobId,
+      _id: employerId,         // Not employerId: employerId
+      id: updateJobId,         // This is the job ID to update
       jobTitle: formData.jobTitle,
       jobType: formData.jobType,
       category: formData.category,
@@ -178,7 +179,6 @@ function Listings() {
         address: formData.companyAddress,
         about: formData.companyAbout,
       },
-      employerId,
     };
 
     try {
